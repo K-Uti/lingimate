@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
-// import OpenAI from 'openai';
+// import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 
-// const openai = new OpenAI({
-// 	apiKey: process.env.OPENAI_API_KEY,
-// });
+const openai = new OpenAI({
+	apiKey: process.env.GROQ_API_KEY,
+	baseURL: process.env.OPEN_AI_URL, // need to provide url to redirect to GROQ
+});
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
 	try {
@@ -55,29 +56,30 @@ export async function POST(req: Request) {
       """
     `;
 
-		const response = await ai.models.generateContent({
-			model: 'gemini-3.8-flash',
-			contents: userPrompt,
-			config: {
-				systemInstruction: systemPrompt,
-				temperature: 0.5,
-			},
-		});
-
-		// const response = await openai.chat.completions.create({
-		// 	model: 'gpt-4o-mini',
-		// 	messages: [
-		// 		{ role: 'system', content: systemPrompt },
-		// 		{ role: 'user', content: userPrompt },
-		// 	],
-		// 	temperature: 0.5, // low temp so that model would not invent facts etc.
+		// const response = await ai.models.generateContent({
+		// 	model: 'gemini-3.8-flash',
+		// 	contents: userPrompt,
+		// 	config: {
+		// 		systemInstruction: systemPrompt,
+		// 		temperature: 0.5,
+		// 	},
 		// });
 
-		// const result = response.choices[0]?.message?.content?.trim();
+		const response = await openai.chat.completions.create({
+			model: 'openai/gpt-oss-120b',
+			messages: [
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt },
+			],
+			temperature: 0.5, // low temp so that model would not invent facts etc.
+		});
 
-		return NextResponse.json({ result: response.text });
+		const result = response.choices[0]?.message?.content?.trim();
+
+		// return NextResponse.json({ result: response.text });
+		return NextResponse.json({ result });
 	} catch (error) {
-		console.error('Gemini Error:', error);
+		console.error('Error:', error);
 		return NextResponse.json(
 			{ error: 'Internal Server Error' },
 			{ status: 500 }

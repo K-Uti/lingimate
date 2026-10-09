@@ -1,0 +1,86 @@
+import { NextResponse } from 'next/server';
+import { GoogleGenAI } from '@google/genai';
+// import OpenAI from 'openai';
+
+// const openai = new OpenAI({
+// 	apiKey: process.env.OPENAI_API_KEY,
+// });
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function POST(req: Request) {
+	try {
+		const { incomingText, userDraft, tone = 'formal' } = await req.json();
+
+		if (!incomingText || !userDraft) {
+			return NextResponse.json(
+				{ error: 'Missing required fields' },
+				{ status: 400 }
+			);
+		}
+
+		const systemPrompt = `
+      You are an expert in cross-cultural business communication and professional translation.
+
+			You are given two texts:
+
+			The incoming text (Language A).
+
+			The user's informal draft reply (Language B).
+
+			Your task:
+
+			Automatically detect Language A, the language of the incoming text.
+
+			Translate, correct, and adapt the user's draft reply (Text 2) into Language A.
+
+			Match the tone specified by: ${tone || 'formal'}.
+
+			Preserve the user's original meaning and intent. Do not invent facts, add information, or make commitments that are not present in the original draft.
+
+			Make the reply sound natural to a native speaker of Language A. Ensure it is grammatically correct, polite, and appropriate for the context.
+
+			Output ONLY the final reply text. Do not include introductions, explanations, comments, or quotation marks.
+    `;
+
+		const userPrompt = `
+      Incoming text:
+      """
+      ${incomingText}
+      """
+
+      user's draft reply:
+      """
+      ${userDraft}
+      """
+    `;
+
+		const response = await ai.models.generateContent({
+			model: 'gemini-3.8-flash',
+			contents: userPrompt,
+			config: {
+				systemInstruction: systemPrompt,
+				temperature: 0.5,
+			},
+		});
+
+		// const response = await openai.chat.completions.create({
+		// 	model: 'gpt-4o-mini',
+		// 	messages: [
+		// 		{ role: 'system', content: systemPrompt },
+		// 		{ role: 'user', content: userPrompt },
+		// 	],
+		// 	temperature: 0.5, // low temp so that model would not invent facts etc.
+		// });
+
+		// const result = response.choices[0]?.message?.content?.trim();
+
+		return NextResponse.json({ result: response.text });
+	} catch (error) {
+		console.error('Gemini Error:', error);
+		return NextResponse.json(
+			{ error: 'Internal Server Error' },
+			{ status: 500 }
+		);
+	}
+}

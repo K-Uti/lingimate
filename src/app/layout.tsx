@@ -27,18 +27,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
 								LINGIMATE
 							</Link>
 							<nav className='flex items-center space-x-6 text-sm font-medium text-zinc-400'>
-								{/* <Link
-									href='/'
-									className='hover:text-zinc-100 transition-colors'
-								>
-									Create
-								</Link>
 								<Link
-									href='/history'
+									href='/talk'
 									className='hover:text-zinc-100 transition-colors'
 								>
-									History
-								</Link> */}
+									Talk
+								</Link>
 							</nav>
 						</div>
 					</div>

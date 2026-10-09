@@ -1,6 +1,19 @@
+'use client';
+
+import { useLanguage } from './context/LangContext';
+
 import Image from 'next/image';
 
+const translations = {
+	en: {
+		info: 'Reply with confidence, even in a language you’re not fluent in.',
+	},
+	ua: { info: 'Відповідай впевнено навіть незнайомою мовою' },
+};
+
 export default function Home() {
+	const { lang } = useLanguage();
+	const t = translations[lang];
 	return (
 		<div className='max-w-3xl mx-auto space-y-8'>
 			<main className='flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 dark:bg-black sm:items-start'>
@@ -12,7 +25,7 @@ export default function Home() {
 					height={500}
 					priority
 				/>
-				Reply with confidence, even in a language you’re not fluent in.
+				{t.info}
 			</main>
 		</div>
 	);
